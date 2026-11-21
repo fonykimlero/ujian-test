@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Ujian Online - Selesai</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #1557b0;
+      --danger: #d93025;
+      --success: #188038;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #dadce0;
+      --shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: linear-gradient(135deg, var(--success), #0e6b2c);
+      color: white;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .header .check-icon {
+      width: 64px; height: 64px;
+      background: rgba(255,255,255,0.2);
+      border: 3px solid white;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    .header h1 {
+      font-size: clamp(1.25rem, 4vw, 1.75rem);
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+    .header p {
+      font-size: clamp(0.85rem, 3vw, 1rem);
+      opacity: 0.92;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: clamp(1.5rem, 4vw, 2.5rem);
+      width: 100%;
+      max-width: 540px;
+      text-align: center;
+    }
+    .error-state {
+      max-width: 480px;
+    }
+    .error-state .icon {
+      width: 56px; height: 56px;
+      background: #fce8e6;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      color: var(--danger);
+      margin-bottom: 1rem;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .info-row .value {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .skor-highlight {
+      background: linear-gradient(135deg, #e8f0fe, #f0f4f8);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1.25rem 0;
+    }
+    .skor-highlight .label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.35rem;
+    }
+    .skor-highlight .skor-value {
+      font-size: clamp(2rem, 8vw, 3rem);
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Courier New', monospace;
+    }
+    .skor-highlight .total {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin: 1.25rem 0;
+    }
+    .stat-mini {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 0.85rem 0.5rem;
+      text-align: center;
+    }
+    .stat-mini .num {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stat-mini .lbl {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.25rem;
+    }
+    .stat-mini.benar .num { color: var(--success); }
+    .stat-mini.salah .num { color: var(--danger); }
+    .stat-mini.kosong .num { color: var(--muted); }
+    .pelanggaran-info {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: #fef7e0;
+      color: #b06000;
+      border-left: 3px solid #f9ab00;
+    }
+    .pelanggaran-info.clean {
+      background: #e6f4ea;
+      color: var(--success);
+      border-left-color: var(--success);
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 1.25rem;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+      .stat-mini { padding: 0.65rem 0.35rem; }
+      .stat-mini .num { font-size: 1.25rem; }
+      .stat-mini .lbl { font-size: 0.7rem; }
+      .info-row { padding: 0.7rem 0.85rem; flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <? if (hasResult) { ?>
+    <div class="header">
+      <div class="check-icon">&#10003;</div>
+      <h1>Ujian Selesai</h1>
+      <p>Jawaban Anda telah berhasil dikirim ke server.</p>
+    </div>
+
+    <div class="main">
+      <div class="card">
+        <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Hasil Ujian</h2>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+          Berikut ringkasan hasil ujian Anda.
+        </p>
+
+        <div class="info-row">
+          <span class="label">Nama</span>
+          <span class="value"><?= nama ?></span>
+        </div>
+        <div class="info-row">
+          <span class="label">Mata Pelajaran</span>
+          <span class="value"><?= mataPelajaran ?></span>
+        </div>
+
+        <div class="skor-highlight">
+          <div class="label">Skor Akhir</div>
+          <div class="skor-value"><?= skor ?></div>
+          <div class="total">dari total <?= total ?> soal</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-mini benar">
+            <div class="num"><?= benar ?></div>
+            <div class="lbl">Benar</div>
+          </div>
+          <div class="stat-mini salah">
+            <div class="num"><?= salah ?></div>
+            <div class="lbl">Salah</div>
+          </div>
+          <div class="stat-mini kosong">
+            <div class="num"><?= kosong ?></div>
+            <div class="lbl">Kosong</div>
+          </div>
+        </div>
+
+        <? if (pelanggaran > 0) { ?>
+          <div class="pelanggaran-info">
+            <strong>&#9888; Tercatat <?= pelanggaran ?> pelanggaran</strong> selama ujian berlangsung.
+            Pelanggaran dapat memengaruhi penilaian akhir sesuai kebijakan pengawas.
+          </div>
+        <? } else { ?>
+          <div class="pelanggaran-info clean">
+            <strong>&#10003; Tidak ada pelanggaran</strong> tercatat selama ujian berlangsung.
+          </div>
+        <? } ?>
+
+        <a href="?page=login" class="btn btn-primary">Kembali ke Halaman Login</a>
+      </div>
+    </div>
+
+  <? } else { ?>
+    <div class="main">
+      <div class="card error-state">
+        <div class="icon">!</div>
+        <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Hasil Tidak Tersedia</h2>
+        <p style="color: var(--muted); line-height: 1.55; margin-bottom: 1.25rem;"><?= error ?></p>
+        <a href="?page=login" class="btn btn-primary">Kembali ke Halaman Login</a>
+      </div>
+    </div>
+  <? } ?>
+
+  <div class="footer">
+    <p>&copy; <?= new Date().getFullYear() ?> Aplikasi Ujian Online</p>
+  </div>
+</body>
+</html>

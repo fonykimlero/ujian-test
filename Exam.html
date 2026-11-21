@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Ujian Online - Ujian Berlangsung</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #1557b0;
+      --danger: #d93025;
+      --warning: #f9ab00;
+      --success: #188038;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #dadce0;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+    /* ===== HEADER ===== */
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 2px; }
+    .header-left .title {
+      font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+      font-weight: 600;
+    }
+    .header-left .subtitle {
+      font-size: clamp(0.75rem, 2vw, 0.88rem);
+      opacity: 0.92;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .info-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      font-size: 0.8rem;
+      opacity: 0.92;
+    }
+    .info-chip .label { font-size: 0.7rem; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-chip .value { font-size: 0.92rem; font-weight: 600; }
+    .timer {
+      background: rgba(255,255,255,0.18);
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 95px;
+    }
+    .timer .label { font-size: 0.65rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .timer .value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .timer.warning { background: rgba(249,171,0,0.85); }
+    .timer.danger { background: rgba(217,48,37,0.92); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
+
+    /* ===== VIOLATION INDICATOR ===== */
+    .violation-bar {
+      background: #fef7e0;
+      border-bottom: 1px solid #f9ab00;
+      padding: 0.5rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      color: #b06000;
+    }
+    .violation-dots { display: flex; gap: 4px; }
+    .violation-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #f9ab00;
+    }
+    .violation-dot.active { background: #d93025; border-color: #d93025; }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 1rem;
+      padding: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      .palette-panel { order: 2; }
+    }
+
+    /* ===== QUESTION CARD ===== */
+    .question-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: clamp(1rem, 3vw, 1.75rem);
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .question-number {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .question-poin {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .question-text {
+      font-size: clamp(1rem, 2.5vw, 1.15rem);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .question-image {
+      margin: 0 0 1.5rem;
+      text-align: center;
+    }
+    .question-image img {
+      max-width: 100%;
+      max-height: 50vh;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      background: #fff;
+      display: inline-block;
+      cursor: zoom-in;
+      transition: transform 0.2s;
+    }
+    .question-image img:hover { transform: scale(1.02); }
+    .question-image img.zoomed {
+      transform: scale(1.8);
+      cursor: zoom-out;
+      position: relative;
+      z-index: 5;
+    }
+    .question-image .img-error {
+      display: inline-block;
+      padding: 1rem 1.5rem;
+      background: #fce8e6;
+      color: var(--danger);
+      border: 1px solid #f3c4c0;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .question-image .img-loading {
+      display: inline-block;
+      padding: 1rem 1.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .options { display: flex; flex-direction: column; gap: 0.65rem; }
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #fff;
+    }
+    .option:hover { border-color: var(--primary); background: #f8faff; }
+    .option.selected {
+      border-color: var(--primary);
+      background: #e8f0fe;
+    }
+    .option-label {
+      width: 32px; height: 32px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 2px solid var(--border);
+    }
+    .option.selected .option-label {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .option-text {
+      font-size: 1rem;
+      line-height: 1.5;
+      padding-top: 4px;
+      flex: 1;
+    }
+    .option input[type="radio"] { display: none; }
+
+    /* ===== NAVIGATION ===== */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+    .btn {
+      padding: 0.65rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    .btn-danger:hover:not(:disabled) { background: #b3261e; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ===== PALETTE PANEL ===== */
+    .palette-panel {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      height: fit-content;
+      position: sticky;
+      top: 90px;
+    }
+    .palette-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 1rem;
+    }
+    .palette-cell {
+      aspect-ratio: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: #fff;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .palette-cell.answered {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+    .palette-cell.current {
+      border-color: var(--primary);
+      border-width: 2.5px;
+      box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+    }
+    .palette-cell:hover { transform: scale(1.08); }
+    .palette-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+    .legend-swatch {
+      width: 14px; height: 14px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border);
+    }
+    .legend-swatch.answered { background: var(--success); border-color: var(--success); }
+    .legend-swatch.unanswered { background: #fff; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      animation: modalIn 0.2s ease-out;
+    }
+    @keyframes modalIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+    .modal p {
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .modal.warning h3 { color: #b06000; }
+    .modal.danger h3 { color: var(--danger); }
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+    .modal.center .modal-actions { justify-content: center; }
+    .violation-icon {
+      width: 56px; height: 56px;
+      background: #fce8e6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin: 0 auto 1rem;
+      color: var(--danger);
+    }
+
+    /* ===== ERROR STATE ===== */
+    .error-state {
+      max-width: 520px;
+      margin: 3rem auto;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .error-state .icon {
+      width: 64px; height: 64px;
+      background: #fce8e6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1rem;
+      color: var(--danger);
+    }
+    .error-state h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .error-state p { color: var(--muted); margin-bottom: 1.5rem; line-height: 1.55; }
+
+    /* ===== FULLSCREEN BANNER ===== */
+    .fullscreen-banner {
+      background: #e8f0fe;
+      border-bottom: 2px solid var(--primary);
+      padding: 0.65rem 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--primary-dark);
+      display: none;
+    }
+    .fullscreen-banner.show { display: block; }
+    .fullscreen-banner button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* ===== LOADING ===== */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+      z-index: 2000;
+    }
+    .loading-overlay.active { display: flex; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.95rem; color: var(--muted); }
+  </style>
+  <!-- KaTeX untuk render notasi matematika (LaTeX) di soal & opsi -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1QIuGaBB7yYntwHLkBXI3MwmRLNq" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjvsCtpx1n5szSRXV0yJr+n9LpiZPbjFu75oZ4s7kQy5ZfXdxK0D9mr6n9H6yQ" crossorigin="anonymous" onload="window.__katexReady=true;"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURICqt5SUmqUu0tQ8yHoLc/qNsPBYdlkPmnqFiHSQRcYBN+BBVtDz" crossorigin="anonymous" onload="window.__autoRenderReady=true;"></script>
+  <style>
+    /* Custom KaTeX container - mode display (block) */
+    .katex-display { margin: 0.5rem 0; overflow-x: auto; overflow-y: hidden; }
+    /* Inline math jangan break baris */
+    .katex { font-size: 1.05em; }
+  </style>
+</head>
+<body>
+  <!-- Error state jika session tidak valid -->
+  <? if (!sessionValid) { ?>
+    <div class="error-state">
+      <div class="icon">!</div>
+      <h2>Tidak Dapat Memulai Ujian</h2>
+      <p><?= error ?></p>
+      <a href="?page=login" class="btn btn-primary" style="text-decoration:none; display:inline-block; padding:0.65rem 1.5rem;">Kembali ke Login</a>
+    </div>
+  <? } else { ?>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <span class="title"><?= peserta.mataPelajaran ?></span>
+      <span class="subtitle"><?= peserta.nama ?> · <?= peserta.kelas ?> · <?= peserta.username ?></span>
+    </div>
+    <div class="header-right">
+      <div class="info-chip">
+        <span class="label">Dijawab</span>
+        <span class="value" id="answeredCount">0 / <?= soalList.length ?></span>
+      </div>
+      <div class="timer" id="timerBox">
+        <span class="label">Sisa Waktu</span>
+        <span class="value" id="timerValue">--:--:--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen banner (muncul jika keluar dari fullscreen) -->
+  <div class="fullscreen-banner" id="fullscreenBanner">
+    Mode fullscreen dilepas. Klik untuk kembali:
+    <button onclick="requestFullscreen()">Kembali ke Fullscreen</button>
+  </div>
+
+  <!-- Violation indicator -->
+  <div class="violation-bar">
+    <span>Pelanggaran:</span>
+    <div class="violation-dots" id="violationDots">
+      <div class="violation-dot" id="dot0"></div>
+      <div class="violation-dot" id="dot1"></div>
+      <div class="violation-dot" id="dot2"></div>
+    </div>
+    <span id="violationText">0 dari <?= pengaturan.maxPelanggaran ?> · 3 strike = auto-submit</span>
+  </div>
+
+  <!-- Layout utama -->
+  <div class="layout">
+    <!-- Question card -->
+    <div class="question-card">
+      <div id="questionContainer">
+        <!-- Soal dirender via JS -->
+      </div>
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" id="btnPrev" onclick="goPrev()">&larr; Sebelumnya</button>
+        <button class="btn btn-danger" id="btnSubmit" onclick="confirmSubmit()">Selesaikan Ujian</button>
+        <button class="btn btn-primary" id="btnNext" onclick="goNext()">Berikutnya &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Palette panel -->
+    <div class="palette-panel">
+      <div class="palette-title">Navigasi Soal</div>
+      <div class="palette-grid" id="paletteGrid"></div>
+      <div class="palette-legend">
+        <div class="legend-item">
+          <div class="legend-swatch answered"></div>
+          <span>Sudah dijawab</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch unanswered"></div>
+          <span>Belum dijawab</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Violation Warning -->
+  <div class="modal-overlay" id="modalViolation">
+    <div class="modal warning">
+      <div class="violation-icon">!</div>
+      <h3 id="violationTitle">Peringatan Pelanggaran</h3>
+      <p id="violationMessage">Tindakan Anda terdeteksi sebagai pelanggaran.</p>
+      <p><strong id="violationCount">Pelanggaran ke-1 dari 3.</strong> Pelanggaran berikutnya akan mengakibatkan ujian di-submit otomatis.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeModal('modalViolation'); requestFullscreen();">Saya Mengerti</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Submit Confirmation -->
+  <div class="modal-overlay" id="modalSubmit">
+    <div class="modal">
+      <h3>Konfirmasi Selesai Ujian</h3>
+      <p>Anda akan menyelesaikan ujian. Jawaban yang sudah Anda berikan akan dikirim ke server dan tidak dapat diubah.</p>
+      <p id="submitSummary" style="font-weight:600; color: var(--text);"></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modalSubmit')">Batal</button>
+        <button class="btn btn-danger" onclick="doSubmit('submit')">Ya, Selesaikan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Auto Submit (pelanggaran) -->
+  <div class="modal-overlay" id="modalAutoSubmit">
+    <div class="modal danger center">
+      <div class="violation-icon">!</div>
+      <h3>Ujian Dikirim Otomatis</h3>
+      <p>Anda telah mencapai batas maksimum pelanggaran (3 strike). Ujian Anda telah dikirim otomatis ke server.</p>
+      <div class="modal-actions" style="justify-content:center;">
+        <button class="btn btn-primary" onclick="window.top.location.href='?page=success&t=<?= encodeURIComponent(peserta.token) ?>'">Lihat Hasil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Time Up -->
+  <div class="modal-overlay" id="modalTimeUp">
+    <div class="modal center">
+      <h3>Waktu Ujian Habis</h3>
+      <p>Waktu yang dialokasikan untuk ujian telah berakhir. Jawaban Anda akan dikirim otomatis.</p>
+      <div class="modal-actions" style="justify-content:center;">
+        <button class="btn btn-primary" onclick="doSubmit('auto_waktu')">OK, Kirim Jawaban</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Mengirim jawaban...</div>
+  </div>
+
+  <!-- Data dari server (diserialized untuk anti-cheating: tidak ada kunci jawaban) -->
+  <script id="examData" type="application/json">
+    <?= soalJson ?>
+  </script>
+  <script id="pesertaData" type="application/json">
+    <?= pesertaJson ?>
+  </script>
+  <script id="pengaturanData" type="application/json">
+    <?= pengaturanJson ?>
+  </script>
+
+  <script>
+    // ====== STATE ======
+    var state = {
+      soalList: [],
+      peserta: {},
+      pengaturan: {},
+      jawaban: {},      // { soalId: optionIndex }
+      currentIdx: 0,
+      pelanggaranCount: 0,
+      waktuMulai: null,
+      sisaDetik: 0,
+      timerInterval: null,
+      heartbeatInterval: null,
+      submitted: false,
+      isFullscreen: false,
+      tabSwitchingLogged: false
+    };
+
+    // ====== INIT ======
+    function init() {
+      try {
+        state.soalList = JSON.parse(document.getElementById('examData').textContent);
+        state.peserta = JSON.parse(document.getElementById('pesertaData').textContent);
+        state.pengaturan = JSON.parse(document.getElementById('pengaturanData').textContent);
+      } catch (e) {
+        alert('Gagal memuat data ujian: ' + e.message);
+        return;
+      }
+
+      state.pelanggaranCount = state.peserta.pelanggaranCount || 0;
+      updateViolationUI();
+
+      // Hitung waktu mulai & sisa
+      if (state.peserta.waktuMulaiIso) {
+        state.waktuMulai = new Date(state.peserta.waktuMulaiIso);
+      } else {
+        state.waktuMulai = new Date();
+      }
+      var durasiMs = state.pengaturan.durasi * 60 * 1000;
+      var elapsedMs = Date.now() - state.waktuMulai.getTime();
+      state.sisaDetik = Math.max(0, Math.floor((durasiMs - elapsedMs) / 1000));
+
+      if (state.sisaDetik <= 0) {
+        showModal('modalTimeUp');
+        return;
+      }
+
+      renderPalette();
+      renderQuestion(0);
+      startTimer();
+      startHeartbeat();
+      setupAntiCheat();
+      requestFullscreen();
+    }
+
+    // ====== RENDER QUESTION ======
+    function renderQuestion(idx) {
+      state.currentIdx = idx;
+      var soal = state.soalList[idx];
+      if (!soal) return;
+
+      var container = document.getElementById('questionContainer');
+      var html = '';
+      html += '<div class="question-header">';
+      html += '<span class="question-number">Soal No. ' + soal.nomor + ' dari ' + state.soalList.length + '</span>';
+      html += '<span class="question-poin">Poin: ' + (soal.poin || 1) + '</span>';
+      html += '</div>';
+      html += '<div class="question-text">' + escapeHtml(soal.pertanyaan) + '</div>';
+      // Render gambar jika ada (URL sudah dinormalisasi server-side)
+      if (soal.gambarUrl) {
+        var safeUrl = escapeAttr(soal.gambarUrl);
+        html += '<div class="question-image">';
+        html += '<img src="' + safeUrl + '" alt="Gambar soal No. ' + soal.nomor + '" loading="lazy" referrerpolicy="no-referrer" ';
+        html += 'onload="this.style.opacity=1;" ';
+        html += 'onerror="this.parentElement.innerHTML=\'<span class=img-error>Gambar gagal dimuat. Periksa koneksi atau hubungi pengawas.</span>\';" ';
+        html += 'onclick="toggleZoomImage(this)" style="opacity:0; transition: opacity 0.3s;">';
+        html += '</div>';
+      }
+      html += '<div class="options">';
+      for (var i = 0; i < soal.opsi.length; i++) {
+        var op = soal.opsi[i];
+        var selected = (state.jawaban[soal.id] === i) ? ' selected' : '';
+        html += '<label class="option' + selected + '" data-soal="' + soal.id + '" data-idx="' + i + '" onclick="selectOption(\'' + soal.id + '\', ' + i + ', this)">';
+        html += '<span class="option-label">' + op.label + '</span>';
+        html += '<span class="option-text">' + escapeHtml(op.text) + '</span>';
+        html += '</label>';
+      }
+      html += '</div>';
+      container.innerHTML = html;
+
+      // Render notasi matematika (LaTeX via KaTeX) pada soal & opsi
+      renderMathInContainer_(container);
+
+      // Update palette highlight
+      updatePaletteHighlight();
+      updateNavButtons();
+      updateAnsweredCount();
+    }
+
+    function selectOption(soalId, idx, labelEl) {
+      state.jawaban[soalId] = idx;
+      // Update UI: deselect all siblings, select this
+      var siblings = labelEl.parentNode.querySelectorAll('.option');
+      siblings.forEach(function(s) { s.classList.remove('selected'); });
+      labelEl.classList.add('selected');
+      updatePaletteCell(soalId);
+      updateAnsweredCount();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /** Escape khusus untuk atribut HTML (src, alt, dll) */
+    function escapeAttr(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /** Toggle zoom gambar soal saat diklik (anti-cheat: tetap dalam halaman, tidak buka tab baru) */
+    function toggleZoomImage(imgEl) {
+      if (imgEl.classList.contains('zoomed')) {
+        imgEl.classList.remove('zoomed');
+      } else {
+        imgEl.classList.add('zoomed');
+      }
+    }
+
+    /**
+     * Render notasi matematika di dalam elemen menggunakan KaTeX auto-render.
+     * Mendukung delimiter: $$...$$ (display), $...$ (inline), \(...\) (inline), \[...\] (display).
+     * Aman: escapeHtml sudah dipanggil sebelum innerHTML di-set, jadi <script> tidak akan dieksekusi.
+     * KaTeX sendiri tidak mengevaluasi JS, hanya render HTML+CSS untuk simbol matematika.
+     * Jika KaTeX belum dimuat (CDN gagal), teks tampil apa adanya ($x^2$ literal — masih terbaca).
+     */
+    function renderMathInContainer_(container) {
+      if (!container) return;
+      var autoRenderReady = (typeof window.renderMathInElement === 'function');
+      if (!autoRenderReady) {
+        // KaTeX auto-render belum dimuat — coba lagi dalam 200ms (max 5 retry)
+        if (!container.__mathRetry) container.__mathRetry = 0;
+        if (container.__mathRetry < 5) {
+          container.__mathRetry++;
+          setTimeout(function() { renderMathInContainer_(container); }, 200);
+        }
+        return;
+      }
+      container.__mathRetry = 0;
+      try {
+        window.renderMathInElement(container, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '\\[', right: '\\]', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false }
+          ],
+          throwOnError: false,
+          ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+          ignoredClasses: ['no-math']
+        });
+      } catch (e) {
+        // Silent fail: math akan tampil sebagai teks literal (still readable)
+      }
+    }
+
+    // ====== PALETTE ======
+    function renderPalette() {
+      var grid = document.getElementById('paletteGrid');
+      var html = '';
+      for (var i = 0; i < state.soalList.length; i++) {
+        html += '<div class="palette-cell" id="cell-' + state.soalList[i].id + '" onclick="goToQuestion(' + i + ')">' + (i + 1) + '</div>';
+      }
+      grid.innerHTML = html;
+      // Mark answered
+      for (var j = 0; j < state.soalList.length; j++) {
+        updatePaletteCell(state.soalList[j].id);
+      }
+    }
+
+    function updatePaletteCell(soalId) {
+      var cell = document.getElementById('cell-' + soalId);
+      if (!cell) return;
+      if (state.jawaban[soalId] !== undefined) {
+        cell.classList.add('answered');
+      } else {
+        cell.classList.remove('answered');
+      }
+    }
+
+    function updatePaletteHighlight() {
+      // Clear all current markers
+      var cells = document.querySelectorAll('.palette-cell');
+      cells.forEach(function(c) { c.classList.remove('current'); });
+      // Mark current
+      var soal = state.soalList[state.currentIdx];
+      if (soal) {
+        var cell = document.getElementById('cell-' + soal.id);
+        if (cell) cell.classList.add('current');
+      }
+    }
+
+    function goToQuestion(idx) {
+      if (idx < 0 || idx >= state.soalList.length) return;
+      renderQuestion(idx);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goPrev() {
+      if (state.currentIdx > 0) renderQuestion(state.currentIdx - 1);
+    }
+    function goNext() {
+      if (state.currentIdx < state.soalList.length - 1) renderQuestion(state.currentIdx + 1);
+    }
+
+    function updateNavButtons() {
+      document.getElementById('btnPrev').disabled = (state.currentIdx === 0);
+      document.getElementById('btnNext').disabled = (state.currentIdx === state.soalList.length - 1);
+    }
+
+    function updateAnsweredCount() {
+      var count = Object.keys(state.jawaban).length;
+      document.getElementById('answeredCount').textContent = count + ' / ' + state.soalList.length;
+    }
+
+    // ====== TIMER ======
+    function startTimer() {
+      updateTimerDisplay();
+      state.timerInterval = setInterval(function() {
+        state.sisaDetik--;
+        if (state.sisaDetik <= 0) {
+          state.sisaDetik = 0;
+          clearInterval(state.timerInterval);
+          showModal('modalTimeUp');
+        }
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      var s = state.sisaDetik;
+      var h = Math.floor(s / 3600);
+      var m = Math.floor((s % 3600) / 60);
+      var sec = s % 60;
+      var display = pad(h) + ':' + pad(m) + ':' + pad(sec);
+      document.getElementById('timerValue').textContent = display;
+      var box = document.getElementById('timerBox');
+      box.classList.remove('warning', 'danger');
+      if (s <= 60) box.classList.add('danger');
+      else if (s <= 300) box.classList.add('warning');
+    }
+
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+    // ====== HEARTBEAT (cek session server tiap 30s) ======
+    function startHeartbeat() {
+      state.heartbeatInterval = setInterval(function() {
+        if (state.submitted) return;
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res.valid === false) {
+              // Session invalid - paksa submit
+              if (!state.submitted) doSubmit('session_invalid');
+            } else if (res.sisaDetik !== undefined) {
+              // Sync timer dengan server (lebih akurat)
+              if (Math.abs(res.sisaDetik - state.sisaDetik) > 5) {
+                state.sisaDetik = res.sisaDetik;
+                updateTimerDisplay();
+              }
+            }
+          })
+          .withFailureHandler(function(err) {
+            console.warn('Heartbeat gagal:', err);
+          })
+          .checkSession(state.peserta.username, state.peserta.token);
+      }, 30000);
+    }
+
+    // ====== ANTI-CHEATING ======
+    function setupAntiCheat() {
+      // 1. Tab switching detection (Visibility API)
+      document.addEventListener('visibilitychange', function() {
+        if (document.hidden && !state.submitted) {
+          handleViolation('tab_switch', 'Tab/window tidak aktif (visibilitychange)');
+        }
+      });
+
+      // 2. Window blur (alt-tab, klik window lain)
+      window.addEventListener('blur', function() {
+        if (!state.submitted && !state.tabSwitchingLogged) {
+          state.tabSwitchingLogged = true;
+          handleViolation('blur', 'Window kehilangan fokus');
+          setTimeout(function() { state.tabSwitchingLogged = false; }, 1500);
+        }
+      });
+
+      // 3. Fullscreen exit detection
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+      // 4. Copy / Cut / Paste block
+      ['copy', 'cut', 'paste'].forEach(function(evt) {
+        document.addEventListener(evt, function(e) {
+          e.preventDefault();
+          if (!state.submitted) {
+            handleViolation(evt, 'Aksi ' + evt + ' diblokir');
+          }
+          return false;
+        });
+      });
+
+      // 5. Context menu (right click) block
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        if (!state.submitted) {
+          handleViolation('context_menu', 'Klik kanan diblokir');
+        }
+        return false;
+      });
+
+      // 6. Keyboard shortcuts block (Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, F12, etc.)
+      document.addEventListener('keydown', function(e) {
+        var key = e.key.toLowerCase();
+        var ctrl = e.ctrlKey || e.metaKey;
+        // Block dev tools shortcuts
+        if (e.key === 'F12' ||
+            (ctrl && e.shiftKey && ['i', 'j', 'c'].includes(key)) ||
+            (ctrl && key === 'u')) {
+          e.preventDefault();
+          if (!state.submitted) handleViolation('devtools', 'Shortcut dev tools diblokir');
+          return false;
+        }
+        // Block copy/paste/cut/select-all
+        if (ctrl && ['c', 'v', 'x', 'a'].includes(key)) {
+          e.preventDefault();
+          if (!state.submitted) handleViolation(key === 'a' ? 'select_all' : key, 'Ctrl+' + key.toUpperCase() + ' diblokir');
+          return false;
+        }
+        // Block PrintScreen
+        if (e.key === 'PrintScreen') {
+          e.preventDefault();
+          if (!state.submitted) handleViolation('print_screen', 'PrintScreen diblokir');
+          return false;
+        }
+      });
+
+      // 7. Block text selection via mouse
+      document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+        return false;
+      });
+
+      // 8. Block drag
+      document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        return false;
+      });
+
+      // 9. Detect beforeunload (close tab / refresh)
+      window.addEventListener('beforeunload', function(e) {
+        if (!state.submitted) {
+          // Log violation tapi tidak bisa mencegah close
+          handleViolation('before_unload', 'Percobaan menutup/refresh halaman');
+          var msg = 'PERINGATAN: Menutup atau me-refresh halaman akan mencatat pelanggaran. Ujian belum selesai. Lanjutkan?';
+          e.preventDefault();
+          e.returnValue = msg;
+          return msg;
+        }
+      });
+
+      // 10. Detect dev tools (basic heuristic)
+      var devtoolsOpen = false;
+      setInterval(function() {
+        if (state.submitted) return;
+        var widthThreshold = window.outerWidth - window.innerWidth > 160;
+        var heightThreshold = window.outerHeight - window.innerHeight > 160;
+        if (widthThreshold || heightThreshold) {
+          if (!devtoolsOpen) {
+            devtoolsOpen = true;
+            handleViolation('devtools_open', 'DevTools terdeteksi terbuka');
+          }
+        } else {
+          devtoolsOpen = false;
+        }
+      }, 2000);
+    }
+
+    function handleFullscreenChange() {
+      var isFs = document.fullscreenElement ||
+                 document.webkitFullscreenElement ||
+                 document.mozFullScreenElement ||
+                 document.msFullscreenElement;
+      state.isFullscreen = !!isFs;
+      var banner = document.getElementById('fullscreenBanner');
+      if (!isFs && !state.submitted) {
+        banner.classList.add('show');
+        handleViolation('exit_fullscreen', 'Keluar dari mode fullscreen');
+      } else {
+        banner.classList.remove('show');
+      }
+    }
+
+    function requestFullscreen() {
+      var el = document.documentElement;
+      var promise = null;
+      if (el.requestFullscreen) promise = el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) promise = el.webkitRequestFullscreen();
+      else if (el.mozRequestFullScreen) promise = el.mozRequestFullScreen();
+      else if (el.msRequestFullscreen) promise = el.msRequestFullscreen();
+      // Untuk iframe - perlu izin dari parent
+      if (!promise && window.self !== window.top) {
+        // Coba request via parent postMessage (jika parent mendukung)
+        try {
+          window.parent.postMessage({ type: 'requestFullscreen' }, '*');
+        } catch (e) {}
+      }
+    }
+
+    // ====== VIOLATION HANDLING ======
+    function handleViolation(jenis, detail) {
+      if (state.submitted) return;
+
+      // Optimistic: update UI dulu
+      state.pelanggaranCount++;
+      updateViolationUI();
+
+      // Kirim ke server untuk log + increment
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) {
+            console.error('Log violation error:', res.error);
+            return;
+          }
+          if (res.count !== undefined) {
+            state.pelanggaranCount = res.count;
+            updateViolationUI();
+          }
+          if (res.autoSubmit && !state.submitted) {
+            // Tampilkan modal auto-submit
+            showModal('modalAutoSubmit');
+            // Submit otomatis setelah jeda 2.5 detik (memberi waktu peserta baca)
+            setTimeout(function() {
+              if (!state.submitted) doSubmit('auto_pelanggaran');
+            }, 2500);
+          } else if (res.count !== undefined && res.count > 0) {
+            // Tampilkan warning modal (kecuali jika sudah auto-submit)
+            showViolationModal(jenis, detail, res.count, res.max);
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.error('Server failure:', err);
+        })
+        .logViolation(state.peserta.username, state.peserta.token, jenis, detail);
+
+      // Selalu tampilkan warning visual ringan
+      flashWarning();
+    }
+
+    function showViolationModal(jenis, detail, count, max) {
+      var titles = {
+        tab_switch: 'Peringatan: Pindah Tab',
+        blur: 'Peringatan: Window Tidak Aktif',
+        exit_fullscreen: 'Peringatan: Keluar Fullscreen',
+        copy: 'Peringatan: Aksi Copy',
+        cut: 'Peringatan: Aksi Cut',
+        paste: 'Peringatan: Aksi Paste',
+        context_menu: 'Peringatan: Klik Kanan',
+        select_all: 'Peringatan: Select All',
+        devtools: 'Peringatan: DevTools',
+        devtools_open: 'Peringatan: DevTools Terbuka',
+        print_screen: 'Peringatan: PrintScreen',
+        before_unload: 'Peringatan: Tutup/Refresh'
+      };
+      document.getElementById('violationTitle').textContent = titles[jenis] || 'Peringatan Pelanggaran';
+      document.getElementById('violationMessage').textContent = detail;
+      document.getElementById('violationCount').textContent =
+        'Pelanggaran ke-' + count + ' dari ' + max + '.';
+      showModal('modalViolation');
+    }
+
+    function updateViolationUI() {
+      var max = state.pengaturan.maxPelanggaran || 3;
+      for (var i = 0; i < max; i++) {
+        var dot = document.getElementById('dot' + i);
+        if (dot) {
+          if (i < state.pelanggaranCount) dot.classList.add('active');
+          else dot.classList.remove('active');
+        }
+      }
+      document.getElementById('violationText').textContent =
+        state.pelanggaranCount + ' dari ' + max + ' · 3 strike = auto-submit';
+    }
+
+    function flashWarning() {
+      // Flash header merah sebentar
+      var header = document.querySelector('.header');
+      if (!header) return;
+      var orig = header.style.background;
+      header.style.background = '#d93025';
+      setTimeout(function() {
+        header.style.background = orig;
+      }, 400);
+    }
+
+    // ====== SUBMIT ======
+    function confirmSubmit() {
+      var answered = Object.keys(state.jawaban).length;
+      var total = state.soalList.length;
+      var unanswered = total - answered;
+      var msg = 'Total soal: ' + total + '\n';
+      msg += 'Sudah dijawab: ' + answered + '\n';
+      msg += 'Belum dijawab: ' + unanswered;
+      document.getElementById('submitSummary').textContent = msg;
+      showModal('modalSubmit');
+    }
+
+    function doSubmit(alasan) {
+      if (state.submitted) return;
+      state.submitted = true;
+      closeModal('modalSubmit');
+      closeModal('modalTimeUp');
+      closeModal('modalViolation');
+      closeModal('modalAutoSubmit');
+      showLoading('Mengirim jawaban...');
+
+      // Stop timer & heartbeat
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      if (state.heartbeatInterval) clearInterval(state.heartbeatInterval);
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          hideLoading();
+          if (res.error) {
+            state.submitted = false;
+            alert('Gagal submit: ' + res.error);
+            return;
+          }
+          if (res.redirect) {
+            window.top.location.href = res.redirect;
+          }
+        })
+        .withFailureHandler(function(err) {
+          hideLoading();
+          state.submitted = false;
+          alert('Kesalahan koneksi submit: ' + (err.message || err) + '\n\nSilakan coba lagi atau hubungi pengawas.');
+        })
+        .submitExamWithIndex(state.peserta.username, state.peserta.token, state.jawaban, alasan);
+    }
+
+    // ====== MODAL HELPERS ======
+    function showModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    // ====== LOADING ======
+    function showLoading(msg) {
+      document.getElementById('loadingText').textContent = msg || 'Memproses...';
+      document.getElementById('loadingOverlay').classList.add('active');
+    }
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('active');
+    }
+
+    // ====== START ======
+    // Auto init saat DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+
+  <? } ?>
+</body>
+</html>

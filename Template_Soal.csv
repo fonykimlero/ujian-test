@@ -1,0 +1,25 @@
+id,mata_pelajaran,pertanyaan,opsiA,opsiB,opsiC,opsiD,opsiE,jawaban_benar,poin,gambar_url
+S001,Matematika,Hasil dari 15 + 27 adalah ...,40,41,42,43,44,C,1,
+S002,Matematika,Hasil dari 8 x 9 adalah ...,63,64,72,81,82,C,1,
+S003,Matematika,Akar kuadrat dari 144 adalah ...,10,11,12,13,14,C,1,
+S004,Matematika,Hasil dari 30 : 6 adalah ...,4,5,6,7,8,B,1,
+S005,Matematika,"Jika x + 5 = 12, maka nilai x adalah ...",5,6,7,8,9,C,1,
+S006,Matematika,Hasil dari 25% x 200 adalah ...,25,40,50,75,100,C,1,
+S007,Matematika,Berapakah 3 pangkat 4 (3^4)?,12,27,64,81,243,D,1,
+S008,Matematika,Keliling persegi dengan sisi 7 cm adalah ...,14 cm,21 cm,28 cm,35 cm,49 cm,C,1,
+S009,Matematika,Perhatikan gambar segitiga berikut. Berapakah keliling segitiga tersebut (dalam cm)?,12 cm,15 cm,18 cm,24 cm,36 cm,D,1,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Triangle_illustration.svg/240px-Triangle_illustration.svg.png
+S010,Matematika,"Perhatikan gambar lingkaran berikut. Jika diameter lingkaran 14 cm, berapakah kelilingnya (π = 22/7)?",22 cm,44 cm,154 cm,196 cm,308 cm,B,2,https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Circle_-_black.svg/200px-Circle_-_black.svg.png
+S011,Bahasa Indonesia,"Sinonim dari kata ""indah"" adalah ...",buruk,jelek,cantik,keras,kecil,C,1,
+S012,Bahasa Indonesia,"Antonim dari kata ""tinggi"" adalah ...",kecil,rendah,besar,lebar,panjang,B,1,
+S013,Bahasa Indonesia,"Kata depan ""di"" pada kalimat ""Saya di rumah"" berfungsi sebagai ...",subjek,predikat,obyek,keterangan,keterangan tempat,D,1,
+S014,IPA,Bagian tumbuhan yang berfungsi menyerap air dan zat hara adalah ...,daun,batang,akar,bunga,buah,C,1,
+S015,IPA,Perhatikan gambar tumbuhan berikut. Bagian yang ditunjuk oleh panah adalah tempat terjadinya fotosintesis. Bagian tumbuhan apakah itu?,akar,batang,daun,bunga,buah,C,2,https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Leaf_1_web.jpg/220px-Leaf_1_web.jpg
+S016,IPA,Gas yang diperlukan manusia untuk bernapas adalah ...,karbon dioksida,oksigen,nitrogen,hidrogen,helium,B,1,
+S017,IPA,Planet terdekat dengan matahari dalam tata surya adalah ...,Venus,Bumi,Mars,Mercury,Jupiter,D,1,
+S018,Matematika,"Jika $x^2 = 144$, maka nilai $x$ adalah ...",$12$,$-12$,$\pm 12$,$144$,$24$,C,1,
+S019,Matematika,Hasil dari $\sqrt{225}$ adalah ...,$12$,$15$,$25$,$50$,$75$,B,1,
+S020,Matematika,Determinan matriks $A = \begin{pmatrix} 3 & 2 \\ 1 & 4 \end{pmatrix}$ adalah ...,$10$,$12$,$14$,$16$,$20$,A,2,
+S021,Kimia,Rumus kimia untuk air adalah ...,$H_2O$,$HO_2$,$H_2O_2$,$2HO$,$OH_2$,A,1,
+S022,Fisika,"Sebuah benda bergerak dengan kecepatan $v = 20\,\text{m/s}$ selama $t = 5\,\text{s}$. Jarak tempuh benda adalah ...","$25\,\text{m}$","$50\,\text{m}$","$100\,\text{m}$","$200\,\text{m}$","$400\,\text{m}$",C,2,
+S023,Matematika,Hasil dari $\frac{3}{4} + \frac{1}{2}$ adalah ...,$\frac{4}{6}$,$1$,$\frac{5}{4}$,$\frac{6}{4}$,$2$,C,1,
+S024,Matematika,Nilai dari $\sum_{i=1}^{5} i$ adalah ...,$10$,$15$,$20$,$25$,$30$,B,2,

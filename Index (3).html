@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Ujian Online - Login</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #1557b0;
+      --danger: #d93025;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #dadce0;
+      --shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .header h1 {
+      font-size: clamp(1.25rem, 4vw, 1.75rem);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .header p {
+      font-size: clamp(0.85rem, 3vw, 1rem);
+      opacity: 0.92;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: clamp(1.25rem, 4vw, 2rem);
+      width: 100%;
+      max-width: 440px;
+    }
+    .card h2 {
+      font-size: clamp(1.1rem, 3.5vw, 1.35rem);
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+    .card .subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+    .form-group label .req { color: var(--danger); margin-left: 2px; }
+    .form-group input {
+      width: 100%;
+      padding: 0.7rem 0.85rem;
+      font-size: 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+    }
+    .form-group input::placeholder { color: #9aa0a6; }
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover { background: var(--primary-dark); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled {
+      background: #bdc1c6;
+      cursor: not-allowed;
+    }
+    .alert {
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .alert-error {
+      background: #fce8e6;
+      color: var(--danger);
+      border: 1px solid #f3c4c0;
+    }
+    .alert-info {
+      background: #e8f0fe;
+      color: var(--primary-dark);
+      border: 1px solid #c4d7f5;
+    }
+    .alert-icon {
+      flex-shrink: 0;
+      font-weight: bold;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .info-box {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1rem;
+      background: #f8f9fa;
+      border-left: 3px solid var(--primary);
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .info-box strong { color: var(--text); }
+    .footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      background: var(--bg);
+    }
+    .footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    /* Hide copy/paste UI hints */
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+    @media (max-width: 480px) {
+      .main { padding: 1rem 0.75rem; }
+      .card { padding: 1.25rem; border-radius: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header no-select">
+    <h1>Aplikasi Ujian Online</h1>
+    <p>Sistem Ujian Anti-Cheating Berbasis Token</p>
+  </div>
+
+  <div class="main">
+    <div class="card">
+      <h2>Login Peserta</h2>
+      <p class="subtitle">Masukkan kredensial dan token ujian Anda untuk memulai.</p>
+
+      <? if (error && String(error) !== '') { ?>
+        <div class="alert alert-error">
+          <span class="alert-icon">!</span>
+          <span><?= error ?></span>
+        </div>
+      <? } ?>
+
+      <div id="clientError" class="alert alert-error" style="display:none;">
+        <span class="alert-icon">!</span>
+        <span id="clientErrorMsg"></span>
+      </div>
+
+      <div id="serverError" class="alert alert-error" style="display:none;">
+        <span class="alert-icon">!</span>
+        <span id="serverErrorMsg"></span>
+      </div>
+
+      <form id="loginForm" autocomplete="off" novalidate onsubmit="return false;">
+        <div class="form-group">
+          <label for="username">Username / NIS<span class="req">*</span></label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Contoh: 2024001 atau nama.siswa"
+            autocomplete="off"
+            spellcheck="false"
+            required
+            maxlength="60"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password<span class="req">*</span></label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Masukkan password Anda"
+            autocomplete="new-password"
+            required
+            maxlength="100"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="token">Token Ujian<span class="req">*</span></label>
+          <input
+            type="text"
+            id="token"
+            name="token"
+            placeholder="Contoh: ABCD1234"
+            autocomplete="off"
+            spellcheck="false"
+            required
+            maxlength="20"
+            style="text-transform: uppercase; letter-spacing: 1px; font-family: 'Courier New', monospace;"
+          >
+        </div>
+
+        <button type="submit" id="btnLogin" class="btn-submit" onclick="handleLogin(event)">
+          <span id="btnLoginText">Mulai Ujian</span>
+        </button>
+      </form>
+
+      <div class="info-box">
+        <strong>Petunjuk:</strong><br>
+        1. Pastikan Anda menggunakan browser terbaru (Chrome / Edge / Firefox).<br>
+        2. Token bersifat <strong>satu kali pakai</strong> - sekali login, token tidak dapat digunakan lagi untuk sesi lain.<br>
+        3. Setelah klik "Mulai Ujian", layar akan masuk mode <strong>fullscreen</strong> otomatis.<br>
+        4. Keluar dari tab, menutup fullscreen, atau copy-paste akan dicatat sebagai pelanggaran. <strong>3 pelanggaran = ujian auto-submit.</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; <?= new Date().getFullYear() ?> Aplikasi Ujian Online · <a href="?page=admin">Panel Admin</a></p>
+  </div>
+
+  <script>
+    /**
+     * Handle login form submission.
+     * Validasi client-side, lalu panggil server via google.script.run.
+     */
+    function handleLogin(e) {
+      if (e) e.preventDefault();
+      hideAlert('clientError');
+      hideAlert('serverError');
+
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value;
+      var token = document.getElementById('token').value.trim().toUpperCase();
+
+      // Validasi client
+      if (!username) {
+        showAlert('clientError', 'Username wajib diisi.');
+        document.getElementById('username').focus();
+        return false;
+      }
+      if (!password) {
+        showAlert('clientError', 'Password wajib diisi.');
+        document.getElementById('password').focus();
+        return false;
+      }
+      if (!token) {
+        showAlert('clientError', 'Token ujian wajib diisi.');
+        document.getElementById('token').focus();
+        return false;
+      }
+      if (token.length < 4) {
+        showAlert('clientError', 'Token terlalu pendek. Periksa kembali token Anda.');
+        document.getElementById('token').focus();
+        return false;
+      }
+
+      // Tampilkan loading
+      setLoading(true);
+
+      // Panggil server
+      google.script.run
+        .withSuccessHandler(onLoginSuccess)
+        .withFailureHandler(onLoginFailure)
+        .prosesLogin(username, password, token);
+
+      return false;
+    }
+
+    function onLoginSuccess(result) {
+      setLoading(false);
+      if (result.error) {
+        showAlert('serverError', result.error);
+        return;
+      }
+      if (result.success && result.redirect) {
+        // Redirect ke halaman ujian
+        window.top.location.href = result.redirect;
+      } else {
+        showAlert('serverError', 'Respons server tidak valid.');
+      }
+    }
+
+    function onLoginFailure(error) {
+      setLoading(false);
+      showAlert('serverError', 'Kesalahan koneksi ke server: ' + (error.message || error));
+    }
+
+    function setLoading(loading) {
+      var btn = document.getElementById('btnLogin');
+      var btnText = document.getElementById('btnLoginText');
+      if (loading) {
+        btn.disabled = true;
+        btnText.innerHTML = '<span class="loading"></span>Memvalidasi...';
+      } else {
+        btn.disabled = false;
+        btnText.textContent = 'Mulai Ujian';
+      }
+    }
+
+    function showAlert(id, msg) {
+      var el = document.getElementById(id);
+      var msgEl = document.getElementById(id + 'Msg');
+      if (msgEl) msgEl.textContent = msg;
+      if (el) el.style.display = 'flex';
+    }
+
+    function hideAlert(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+
+    // Anti autofill & clear field pada reload
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        document.getElementById('loginForm').reset();
+      }
+    });
+
+    // Auto-uppercase token saat mengetik
+    document.getElementById('token').addEventListener('input', function() {
+      this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+
+    // Enter key submits
+    document.getElementById('password').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleLogin(e);
+    });
+    document.getElementById('token').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleLogin(e);
+    });
+
+    // Fokus ke field pertama
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('username').focus();
+    });
+  </script>
+</body>
+</html>

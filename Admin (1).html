@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Ujian Online - Admin Panel</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #1557b0;
+      --danger: #d93025;
+      --warning: #f9ab00;
+      --success: #188038;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #dadce0;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #202124, #3c4043);
+      color: white;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .header h1 {
+      font-size: clamp(1rem, 3vw, 1.25rem);
+      font-weight: 600;
+    }
+    .header .subtitle {
+      font-size: 0.78rem;
+      opacity: 0.7;
+    }
+    .header-actions { display: flex; gap: 0.5rem; }
+    .btn {
+      padding: 0.55rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+    .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover:not(:disabled) { background: #b3261e; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover:not(:disabled) { background: #0e6b2c; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+
+    /* ===== LOGIN ===== */
+    .login-wrap {
+      max-width: 380px;
+      margin: 4rem auto;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+    .login-wrap h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    .login-wrap p { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.95rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.12);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .alert {
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+    }
+    .alert-error { background: #fce8e6; color: var(--danger); border: 1px solid #f3c4c0; }
+    .alert-success { background: #e6f4ea; color: var(--success); border: 1px solid #b7e1c5; }
+    .alert-info { background: #e8f0fe; color: var(--primary-dark); border: 1px solid #c4d7f5; }
+
+    /* ===== TABS ===== */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: #fff;
+      border-bottom: 2px solid var(--border);
+      padding: 0 1rem;
+      overflow-x: auto;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .tab {
+      padding: 0.85rem 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .tab:hover { color: var(--primary); }
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 3rem;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ===== STAT CARDS ===== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--primary);
+    }
+    .stat-card.success { border-left-color: var(--success); }
+    .stat-card.warning { border-left-color: var(--warning); }
+    .stat-card.danger { border-left-color: var(--danger); }
+    .stat-card .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.35rem;
+    }
+    .stat-card .value {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ===== TABLE ===== */
+    .table-wrap {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .table-scroll { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    th, td {
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      position: sticky;
+      top: 0;
+    }
+    tbody tr:hover { background: #f8faff; }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-active { background: #e8f0fe; color: var(--primary); }
+    .badge-in_progress { background: #fef7e0; color: #b06000; }
+    .badge-completed { background: #e6f4ea; color: var(--success); }
+    .token-cell {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      letter-spacing: 1px;
+      background: #f0f4f8;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* ===== FORMS ===== */
+    .form-card {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-card h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.85rem;
+    }
+    .form-grid-full { grid-column: 1 / -1; }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .panel-header h3 {
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--muted);
+    }
+    .empty-state .icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.4;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 540px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 { font-size: 1.15rem; margin-bottom: 0.85rem; }
+    .modal-actions {
+      display: flex;
+      gap: 0.65rem;
+      justify-content: flex-end;
+      margin-top: 1.25rem;
+    }
+
+    /* ===== LOADING ===== */
+    .loading-inline {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #202124;
+      color: white;
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      z-index: 2000;
+      display: none;
+      max-width: 320px;
+    }
+    .toast.show { display: block; animation: slideUp 0.25s ease-out; }
+    .toast.error { background: var(--danger); }
+    .toast.success { background: var(--success); }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .search-box {
+      padding: 0.55rem 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      width: 220px;
+      max-width: 100%;
+    }
+
+    @media (max-width: 640px) {
+      .header { padding: 0.75rem 1rem; }
+      .content { padding: 1rem; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-card .value { font-size: 1.4rem; }
+    }
+  </style>
+  <!-- KaTeX untuk preview notasi matematika di tabel soal & form */
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1QIuGaBB7yYntwHLkBXI3MwmRLNq" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjvsCtpx1n5szSRXV0yJr+n9LpiZPbjFu75oZ4s7kQy5ZfXdxK0D9mr6n9H6yQ" crossorigin="anonymous" onload="window.__katexReady=true;"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURICqt5SUmqUu0tQ8yHoLc/qNsPBYdlkPmnqFiHSQRcYBN+BBVtDz" crossorigin="anonymous" onload="window.__autoRenderReady=true;"></script>
+  <style>
+    .katex-display { margin: 0.4rem 0; overflow-x: auto; }
+    .katex { font-size: 1.05em; }
+    /* Cheat sheet LaTeX di form soal */
+    .latex-cheatsheet {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+    .latex-cheatsheet summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .latex-cheatsheet table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    .latex-cheatsheet td {
+      padding: 0.2rem 0.4rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .latex-cheatsheet td:first-child {
+      font-family: 'Courier New', monospace;
+      color: var(--primary-dark);
+      white-space: nowrap;
+      width: 35%;
+    }
+    .math-preview-box {
+      margin-top: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      min-height: 2rem;
+      overflow-x: auto;
+    }
+    .math-preview-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Panel Admin · Aplikasi Ujian Online</h1>
+      <div class="subtitle">Kelola token, soal, peserta, dan hasil ujian</div>
+    </div>
+    <div class="header-actions">
+      <a href="?page=login" class="btn btn-secondary btn-sm">Halaman Login Peserta</a>
+    </div>
+  </div>
+
+  <!-- ============ LOGIN VIEW (jika belum auth) ============ -->
+  <? if (!loggedIn) { ?>
+    <div class="login-wrap">
+      <h2>Login Admin</h2>
+      <p>Masukkan password admin untuk mengakses panel.</p>
+      <div id="loginAlert"></div>
+      <form id="adminLoginForm" onsubmit="return false;" autocomplete="off">
+        <div class="form-group">
+          <label for="adminPassword">Password Admin</label>
+          <input type="password" id="adminPassword" placeholder="Masukkan password" autocomplete="off" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;" id="btnAdminLogin" onclick="handleAdminLogin(event)">
+          Masuk
+        </button>
+      </form>
+      <div style="margin-top:1.25rem; font-size:0.8rem; color: var(--muted); line-height:1.55;">
+        <strong>Default:</strong> admin123 (ganti setelah setup pertama di sheet Pengaturan).
+      </div>
+    </div>
+
+  <? } else { ?>
+
+  <!-- ============ TABS ============ -->
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab" data-tab="token" onclick="switchTab('token')">Token</button>
+    <button class="tab" data-tab="peserta" onclick="switchTab('peserta')">Peserta</button>
+    <button class="tab" data-tab="soal" onclick="switchTab('soal')">Soal</button>
+    <button class="tab" data-tab="hasil" onclick="switchTab('hasil')">Hasil</button>
+    <button class="tab" data-tab="log" onclick="switchTab('log')">Log Pelanggaran</button>
+    <button class="tab" data-tab="pengaturan" onclick="switchTab('pengaturan')">Pengaturan</button>
+  </div>
+
+  <div class="content">
+    <!-- ============ DASHBOARD ============ -->
+    <div class="tab-panel active" id="tab-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="label">Total Peserta</div>
+          <div class="value"><?= statistik.totalPeserta ?></div>
+        </div>
+        <div class="stat-card success">
+          <div class="label">Sudah Selesai</div>
+          <div class="value"><?= statistik.totalSelesai ?></div>
+        </div>
+        <div class="stat-card warning">
+          <div class="label">Sedang Ujian</div>
+          <div class="value"><?= statistik.totalInProgress ?></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Belum Mulai</div>
+          <div class="value"><?= statistik.totalActive ?></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Soal</div>
+          <div class="value"><?= statistik.totalSoal ?></div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Aksi Cepat</h3>
+        <p style="margin-bottom: 1rem; color: var(--muted); font-size: 0.88rem;">
+          Generate token untuk semua peserta yang belum punya token, atau tambah data baru.
+        </p>
+        <div style="display:flex; gap: 0.65rem; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="switchTab('token'); generateTokens();">
+            Generate Token Massal
+          </button>
+          <button class="btn btn-secondary" onclick="switchTab('peserta'); showAddPesertaForm();">
+            Tambah Peserta
+          </button>
+          <button class="btn btn-secondary" onclick="switchTab('soal'); showAddSoalForm();">
+            Tambah Soal
+          </button>
+          <button class="btn btn-secondary" onclick="switchTab('hasil'); loadHasil();">
+            Lihat Hasil Ujian
+          </button>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Cara Pakai Cepat</h3>
+        <ol style="padding-left: 1.25rem; line-height: 1.7; color: var(--text); font-size: 0.9rem;">
+          <li>Pastikan setup spreadsheet sudah dijalankan (menu <strong>Ujian Online &rarr; 1. Setup Spreadsheet</strong> di Spreadsheet).</li>
+          <li>Tambah data peserta di tab <strong>Peserta</strong> (atau import dari CSV).</li>
+          <li>Tambah soal pilihan ganda di tab <strong>Soal</strong>.</li>
+          <li>Buka tab <strong>Token</strong> &rarr; klik <strong>Generate Token Massal</strong> untuk membuat token unik per peserta.</li>
+          <li>Distribusikan token + password ke masing-masing peserta (cetak kartu atau kirim manual).</li>
+          <li>Peserta login di halaman utama dengan username + password + token.</li>
+          <li>Pantau progress di tab <strong>Hasil</strong> dan pelanggaran di tab <strong>Log Pelanggaran</strong>.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ============ TOKEN TAB ============ -->
+    <div class="tab-panel" id="tab-token">
+      <div class="panel-header">
+        <h3>Manajemen Token</h3>
+        <div style="display:flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="generateTokens()" id="btnGenToken">
+            Generate Token Massal
+          </button>
+          <button class="btn btn-secondary" onclick="printTokenList()">
+            Cetak Daftar Token
+          </button>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <strong>Cara kerja token (one-time link):</strong> Setiap peserta mendapat token unik.
+        Saat peserta pertama kali login dengan token + password yang benar, status berubah menjadi
+        <em>in_progress</em> dan token tidak bisa dipakai untuk sesi lain. Setelah submit, status menjadi
+        <em>completed</em>.
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Nama</th>
+                <th>Kelas</th>
+                <th>Mata Pelajaran</th>
+                <th>Token</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tokenTableBody">
+              <tr><td colspan="6" class="empty-state">Klik "Generate Token Massal" atau muat data peserta.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PESERTA TAB ============ -->
+    <div class="tab-panel" id="tab-peserta">
+      <div class="panel-header">
+        <h3>Data Peserta</h3>
+        <div style="display:flex; gap: 0.5rem; flex-wrap: wrap;">
+          <input type="text" class="search-box" id="searchPeserta" placeholder="Cari nama/username..." oninput="filterPeserta()">
+          <button class="btn btn-primary" onclick="showAddPesertaForm()">+ Tambah Peserta</button>
+          <button class="btn btn-secondary" onclick="loadPeserta()">Muat Ulang</button>
+        </div>
+      </div>
+
+      <div id="addPesertaForm" style="display:none;">
+        <div class="form-card">
+          <h3>Tambah Peserta Baru</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Username / NIS *</label>
+              <input type="text" id="pUsername" placeholder="contoh: 2024001">
+            </div>
+            <div class="form-group">
+              <label>Password *</label>
+              <input type="text" id="pPassword" placeholder="password peserta">
+            </div>
+            <div class="form-group">
+              <label>Nama Lengkap *</label>
+              <input type="text" id="pNama" placeholder="Nama peserta">
+            </div>
+            <div class="form-group">
+              <label>Kelas</label>
+              <input type="text" id="pKelas" placeholder="contoh: XII IPA 1">
+            </div>
+            <div class="form-group">
+              <label>Mata Pelajaran</label>
+              <input type="text" id="pMapel" placeholder="contoh: Matematika">
+            </div>
+          </div>
+          <div style="display:flex; gap: 0.5rem; margin-top: 0.85rem;">
+            <button class="btn btn-success" onclick="addPeserta()">Simpan Peserta</button>
+            <button class="btn btn-secondary" onclick="hideAddPesertaForm()">Batal</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Nama</th>
+                <th>Kelas</th>
+                <th>Mapel</th>
+                <th>Token</th>
+                <th>Status</th>
+                <th>Skor</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="pesertaTableBody">
+              <tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--muted);">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SOAL TAB ============ -->
+    <div class="tab-panel" id="tab-soal">
+      <div class="panel-header">
+        <h3>Bank Soal</h3>
+        <div style="display:flex; gap: 0.5rem; flex-wrap: wrap;">
+          <input type="text" class="search-box" id="searchSoal" placeholder="Cari soal..." oninput="filterSoal()">
+          <button class="btn btn-primary" onclick="showAddSoalForm()">+ Tambah Soal</button>
+          <button class="btn btn-secondary" onclick="loadSoal()">Muat Ulang</button>
+        </div>
+      </div>
+
+      <div id="addSoalForm" style="display:none;">
+        <div class="form-card">
+          <h3>Tambah Soal Pilihan Ganda</h3>
+          <div class="form-group">
+            <label>Mata Pelajaran</label>
+            <input type="text" id="sMapel" placeholder="contoh: Matematika">
+          </div>
+          <div class="form-group">
+            <label>Pertanyaan *</label>
+            <textarea id="sPertanyaan" placeholder="Tulis pertanyaan di sini... Untuk notasi matematika gunakan LaTeX: $x^2$, $\sqrt{144}$, $\frac{a}{b}$, dll." rows="3" oninput="renderPreviewMath();"></textarea>
+            <div class="math-preview-box" id="pertanyaanPreview">
+              <div class="math-preview-label">Preview notasi matematika (KaTeX):</div>
+              <div id="pertanyaanPreviewContent" style="min-height:1.2rem;">(ketik untuk lihat preview)</div>
+            </div>
+            <details class="latex-cheatsheet">
+              <summary>📋 Cheat sheet LaTeX untuk notasi matematika</summary>
+              <table>
+                <tr><td>$x^2$</td><td>x kuadrat (superscript)</td></tr>
+                <tr><td>$x^{10}$</td><td>x pangkat 10 (kurung untuk multi-char)</td></tr>
+                <tr><td>$v_0$, $a_n$</td><td>subscript (v nol, a sub-n)</td></tr>
+                <tr><td>$H_2O$, $CO_2$</td><td>rumus kimia</td></tr>
+                <tr><td>$\sqrt{144}$</td><td>akar kuadrat dari 144</td></tr>
+                <tr><td>$\sqrt[3]{27}$</td><td>akar pangkat 3</td></tr>
+                <tr><td>$\frac{a}{b}$</td><td>pecahan a per b</td></tr>
+                <tr><td>$\pm$, $\times$, $\div$, $\leq$, $\geq$, $\neq$</td><td>plus minus, kali, bagi, ≤, ≥, ≠</td></tr>
+                <tr><td>$\pi$, $\alpha$, $\beta$, $\theta$, $\Sigma$</td><td>huruf Yunani</td></tr>
+                <tr><td>$\sum_{i=1}^{n} i$</td><td>sigma (penjumlahan)</td></tr>
+                <tr><td>$\int_a^b f(x)\,dx$</td><td>integral tentu</td></tr>
+                <tr><td>$\begin{pmatrix} a & b \\\\ c & d \end{pmatrix}$</td><td>matriks 2×2</td></tr>
+                <tr><td>$\overline{AB}$, $\vec{v}$, $\angle ABC$</td><td>garis AB, vektor v, sudut ABC</td></tr>
+                <tr><td>$$...$$</td><td>mode display (tengah baris, ukuran besar)</td></tr>
+                <tr><td>$...$</td><td>mode inline (dalam kalimat)</td></tr>
+              </table>
+              <div style="margin-top:0.5rem; color: var(--muted);">Dollar sign <code>$</code> wajib mengapit rumus. Tanpa <code>$</code>, teks tampil apa adanya.</div>
+            </details>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Opsi A *</label>
+              <input type="text" id="sOpsiA" placeholder="Teks opsi A">
+            </div>
+            <div class="form-group">
+              <label>Opsi B *</label>
+              <input type="text" id="sOpsiB" placeholder="Teks opsi B">
+            </div>
+            <div class="form-group">
+              <label>Opsi C *</label>
+              <input type="text" id="sOpsiC" placeholder="Teks opsi C">
+            </div>
+            <div class="form-group">
+              <label>Opsi D *</label>
+              <input type="text" id="sOpsiD" placeholder="Teks opsi D">
+            </div>
+            <div class="form-group">
+              <label>Opsi E</label>
+              <input type="text" id="sOpsiE" placeholder="Teks opsi E (opsional)">
+            </div>
+            <div class="form-group">
+              <label>Kunci Jawaban *</label>
+              <select id="sKunci">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Poin</label>
+              <input type="number" id="sPoin" value="1" min="1" max="10">
+            </div>
+          </div>
+          <div class="form-group form-grid-full" style="margin-top: 0.5rem;">
+            <label>URL Gambar Soal (opsional)</label>
+            <input type="text" id="sGambarUrl" placeholder="Tempel URL Google Drive atau URL gambar langsung. Contoh: https://drive.google.com/file/d/XXXX/view?usp=sharing" oninput="previewGambarSoal()">
+            <div id="gambarPreviewWrap" style="margin-top: 0.65rem; display: none; text-align: center;">
+              <img id="gambarPreview" style="max-width: 100%; max-height: 200px; border: 1px solid var(--border); border-radius: 8px;" alt="Preview gambar">
+              <div style="font-size: 0.78rem; color: var(--muted); margin-top: 0.35rem;">Preview gambar akan muncul di sini</div>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.55;">
+              <strong>Petunjuk:</strong> Upload gambar ke Google Drive → klik kanan → <em>Get link</em> → set <em>Anyone with the link</em> → copy URL → paste di sini.
+              URL otomatis dinormalisasi server-side agar bisa ditampilkan di halaman ujian.
+            </div>
+          </div>
+          <div style="display:flex; gap: 0.5rem; margin-top: 0.85rem;">
+            <button class="btn btn-success" onclick="addSoal()">Simpan Soal</button>
+            <button class="btn btn-secondary" onclick="hideAddSoalForm()">Batal</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Mapel</th>
+                <th>Pertanyaan</th>
+                <th>Gambar</th>
+                <th>Kunci</th>
+                <th>Poin</th>
+              </tr>
+            </thead>
+            <tbody id="soalTableBody">
+              <tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--muted);">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ HASIL TAB ============ -->
+    <div class="tab-panel" id="tab-hasil">
+      <div class="panel-header">
+        <h3>Hasil Ujian</h3>
+        <div style="display:flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn btn-secondary" onclick="loadHasil()">Muat Ulang</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Nama</th>
+                <th>Kelas</th>
+                <th>Mapel</th>
+                <th>Benar</th>
+                <th>Salah</th>
+                <th>Kosong</th>
+                <th>Skor</th>
+                <th>Total</th>
+                <th>Pelanggaran</th>
+                <th>Waktu Selesai</th>
+              </tr>
+            </thead>
+            <tbody id="hasilTableBody">
+              <tr><td colspan="11" style="text-align:center; padding: 2rem; color: var(--muted);">Klik "Muat Ulang" untuk menampilkan hasil.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ LOG TAB ============ -->
+    <div class="tab-panel" id="tab-log">
+      <div class="panel-header">
+        <h3>Log Pelanggaran</h3>
+        <button class="btn btn-secondary" onclick="loadLog()">Muat Ulang</button>
+      </div>
+      <div class="alert alert-info">
+        Log ini mencatat semua tindakan terdeteksi: pindah tab, keluar fullscreen, copy/paste, klik kanan,
+        buka DevTools, dll. Setiap pelanggaran dicatat timestamp, peserta, dan jenisnya.
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Username</th>
+                <th>Token</th>
+                <th>Jenis</th>
+                <th>Detail</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+              <tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--muted);">Klik "Muat Ulang" untuk menampilkan log.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PENGATURAN TAB ============ -->
+    <div class="tab-panel" id="tab-pengaturan">
+      <div class="form-card">
+        <h3>Pengaturan Ujian</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Durasi Ujian (menit)</label>
+            <input type="number" id="setDurasi" min="1" max="300" placeholder="60">
+          </div>
+          <div class="form-group">
+            <label>Maksimum Pelanggaran</label>
+            <input type="number" id="setMaxPelanggaran" min="1" max="10" placeholder="3">
+          </div>
+          <div class="form-group">
+            <label>Password Admin Baru (opsional)</label>
+            <input type="text" id="setAdminKey" placeholder="Kosongkan jika tidak diubah">
+          </div>
+        </div>
+        <button class="btn btn-success" style="margin-top: 0.85rem;" onclick="savePengaturan()">
+          Simpan Pengaturan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal konfirmasi -->
+  <div class="modal-overlay" id="modalConfirm">
+    <div class="modal">
+      <h3 id="confirmTitle">Konfirmasi</h3>
+      <p id="confirmMessage" style="line-height: 1.55; color: var(--text);"></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modalConfirm')">Batal</button>
+        <button class="btn btn-danger" id="confirmOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ====== STATE ======
+    var dataCache = {
+      peserta: [],
+      soal: [],
+      hasil: [],
+      log: []
+    };
+    var confirmCallback = null;
+
+    // ====== TAB SWITCHING ======
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      var tab = document.querySelector('.tab[data-tab="' + name + '"]');
+      var panel = document.getElementById('tab-' + name);
+      if (tab) tab.classList.add('active');
+      if (panel) panel.classList.add('active');
+
+      // Lazy load data
+      if (name === 'peserta') loadPeserta();
+      else if (name === 'soal') loadSoal();
+      else if (name === 'hasil') loadHasil();
+      else if (name === 'log') loadLog();
+      else if (name === 'token') loadTokenList();
+      else if (name === 'pengaturan') loadPengaturan();
+    }
+
+    // ====== LOGIN ======
+    function handleAdminLogin(e) {
+      if (e) e.preventDefault();
+      var pwd = document.getElementById('adminPassword').value;
+      if (!pwd) {
+        showLoginAlert('Password wajib diisi.', 'error');
+        return;
+      }
+      var btn = document.getElementById('btnAdminLogin');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-inline"></span>Memvalidasi...';
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.textContent = 'Masuk';
+          if (res.error) {
+            showLoginAlert(res.error, 'error');
+          } else if (res.redirect) {
+            window.top.location.href = res.redirect;
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = 'Masuk';
+          showLoginAlert('Kesalahan: ' + (err.message || err), 'error');
+        })
+        .adminLogin(pwd);
+    }
+
+    function showLoginAlert(msg, type) {
+      var el = document.getElementById('loginAlert');
+      el.innerHTML = '<div class="alert alert-' + (type || 'error') + '">' + msg + '</div>';
+    }
+
+    // ====== TOAST ======
+    function showToast(msg, type) {
+      var toast = document.getElementById('toast');
+      toast.className = 'toast ' + (type || '');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 3500);
+    }
+
+    // ====== MODAL ======
+    function showConfirm(title, msg, callback) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = msg;
+      confirmCallback = callback;
+      var okBtn = document.getElementById('confirmOkBtn');
+      okBtn.onclick = function() {
+        closeModal('modalConfirm');
+        if (confirmCallback) confirmCallback();
+        confirmCallback = null;
+      };
+      document.getElementById('modalConfirm').classList.add('active');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    // ====== TOKEN ======
+    function generateTokens() {
+      var btn = document.getElementById('btnGenToken');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-inline"></span>Generating...';
+      }
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (btn) { btn.disabled = false; btn.textContent = 'Generate Token Massal'; }
+          if (res.error) {
+            showToast(res.error, 'error');
+          } else {
+            showToast('Berhasil generate ' + res.generated + ' token baru.', 'success');
+            loadTokenList();
+            loadPeserta();
+          }
+        })
+        .withFailureHandler(function(err) {
+          if (btn) { btn.disabled = false; btn.textContent = 'Generate Token Massal'; }
+          showToast('Kesalahan: ' + (err.message || err), 'error');
+        })
+        .adminGenerateTokens();
+    }
+
+    function loadTokenList() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          dataCache.peserta = res.peserta || [];
+          renderTokenTable(dataCache.peserta);
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal memuat: ' + (err.message || err), 'error');
+        })
+        .adminGetPesertaList();
+    }
+
+    function renderTokenTable(list) {
+      var tbody = document.getElementById('tokenTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--muted);">Belum ada peserta. Tambah peserta di tab Peserta.</td></tr>';
+        return;
+      }
+      var html = '';
+      list.forEach(function(p) {
+        var tokenCell = p.token ? '<span class="token-cell">' + escapeHtml(p.token) + '</span>' : '<em style="color: var(--muted);">Belum ada</em>';
+        var statusBadge = '<span class="badge badge-' + (p.status || 'active') + '">' + (p.status || 'active') + '</span>';
+        html += '<tr>';
+        html += '<td>' + escapeHtml(p.username) + '</td>';
+        html += '<td>' + escapeHtml(p.nama) + '</td>';
+        html += '<td>' + escapeHtml(p.kelas) + '</td>';
+        html += '<td>' + escapeHtml(p.mataPelajaran) + '</td>';
+        html += '<td>' + tokenCell + '</td>';
+        html += '<td>' + statusBadge + '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function printTokenList() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          var list = res.peserta || [];
+          var win = window.open('', '_blank');
+          var html = '<html><head><title>Daftar Token Ujian</title>';
+          html += '<style>';
+          html += 'body { font-family: Arial, sans-serif; padding: 20px; }';
+          html += 'h1 { font-size: 18px; text-align: center; }';
+          html += 'table { width: 100%; border-collapse: collapse; margin-top: 15px; }';
+          html += 'th, td { border: 1px solid #333; padding: 8px; text-align: left; font-size: 13px; }';
+          html += 'th { background: #f0f0f0; }';
+          html += '.token { font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; }';
+          html += '@media print { .no-print { display: none; } }';
+          html += '</style></head><body>';
+          html += '<h1>Daftar Token Ujian</h1>';
+          html += '<p style="text-align:center; font-size: 12px; color: #666;">Dicetak: ' + new Date().toLocaleString('id-ID') + '</p>';
+          html += '<table><thead><tr><th>No</th><th>Username</th><th>Nama</th><th>Kelas</th><th>Mapel</th><th>Token</th></tr></thead><tbody>';
+          list.forEach(function(p, i) {
+            if (!p.token) return;
+            html += '<tr>';
+            html += '<td>' + (i + 1) + '</td>';
+            html += '<td>' + escapeHtml(p.username) + '</td>';
+            html += '<td>' + escapeHtml(p.nama) + '</td>';
+            html += '<td>' + escapeHtml(p.kelas) + '</td>';
+            html += '<td>' + escapeHtml(p.mataPelajaran) + '</td>';
+            html += '<td class="token">' + escapeHtml(p.token) + '</td>';
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+          html += '<p class="no-print" style="margin-top:15px; text-align:center;"><button onclick="window.print()" style="padding:8px 16px; cursor:pointer;">Cetak / Simpan PDF</button></p>';
+          html += '</body></html>';
+          win.document.write(html);
+          win.document.close();
+        })
+        .adminGetPesertaList();
+    }
+
+    // ====== PESERTA ======
+    function loadPeserta() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          dataCache.peserta = res.peserta || [];
+          renderPesertaTable(dataCache.peserta);
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal memuat peserta: ' + (err.message || err), 'error');
+        })
+        .adminGetPesertaList();
+    }
+
+    function renderPesertaTable(list) {
+      var tbody = document.getElementById('pesertaTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--muted);">Belum ada peserta.</td></tr>';
+        return;
+      }
+      var html = '';
+      list.forEach(function(p) {
+        var tokenCell = p.token ? '<span class="token-cell">' + escapeHtml(p.token) + '</span>' : '<em style="color: var(--muted);">-</em>';
+        var statusBadge = '<span class="badge badge-' + (p.status || 'active') + '">' + (p.status || 'active') + '</span>';
+        var skorCell = p.status === 'completed' ? '<strong>' + p.skor + '</strong>' : '-';
+        html += '<tr>';
+        html += '<td>' + escapeHtml(p.username) + '</td>';
+        html += '<td>' + escapeHtml(p.nama) + '</td>';
+        html += '<td>' + escapeHtml(p.kelas) + '</td>';
+        html += '<td>' + escapeHtml(p.mataPelajaran) + '</td>';
+        html += '<td>' + tokenCell + '</td>';
+        html += '<td>' + statusBadge + '</td>';
+        html += '<td>' + skorCell + '</td>';
+        html += '<td>';
+        if (p.status === 'in_progress' || p.status === 'completed') {
+          html += '<button class="btn btn-secondary btn-sm" onclick="resetPeserta(\'' + escapeHtml(p.username) + '\', \'' + escapeHtml(p.token) + '\')">Reset</button>';
+        } else {
+          html += '<span style="color: var(--muted); font-size: 0.78rem;">-</span>';
+        }
+        html += '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function filterPeserta() {
+      var q = document.getElementById('searchPeserta').value.toLowerCase();
+      var filtered = dataCache.peserta.filter(function(p) {
+        return (p.username + ' ' + p.nama + ' ' + p.kelas).toLowerCase().indexOf(q) >= 0;
+      });
+      renderPesertaTable(filtered);
+    }
+
+    function showAddPesertaForm() {
+      document.getElementById('addPesertaForm').style.display = 'block';
+      document.getElementById('pUsername').focus();
+    }
+    function hideAddPesertaForm() {
+      document.getElementById('addPesertaForm').style.display = 'none';
+    }
+
+    function addPeserta() {
+      var peserta = {
+        username: document.getElementById('pUsername').value.trim(),
+        password: document.getElementById('pPassword').value,
+        nama: document.getElementById('pNama').value.trim(),
+        kelas: document.getElementById('pKelas').value.trim(),
+        mataPelajaran: document.getElementById('pMapel').value.trim()
+      };
+      if (!peserta.username || !peserta.nama || !peserta.password) {
+        showToast('Username, password, dan nama wajib diisi.', 'error');
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          showToast('Peserta berhasil ditambahkan.', 'success');
+          hideAddPesertaForm();
+          ['pUsername','pPassword','pNama','pKelas','pMapel'].forEach(function(id) {
+            document.getElementById(id).value = '';
+          });
+          loadPeserta();
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal: ' + (err.message || err), 'error');
+        })
+        .adminAddPeserta(peserta);
+    }
+
+    function resetPeserta(username, token) {
+      showConfirm('Reset Peserta', 'Reset status peserta "' + username + '"? Token akan diaktifkan kembali, skor & log jawaban sebelumnya tetap tersimpan di sheet Jawaban.', function() {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res.error) { showToast(res.error, 'error'); return; }
+            showToast('Peserta berhasil direset.', 'success');
+            loadPeserta();
+          })
+          .withFailureHandler(function(err) {
+            showToast('Gagal reset: ' + (err.message || err), 'error');
+          })
+          .adminResetPeserta(username, token);
+      });
+    }
+
+    // ====== SOAL ======
+    function loadSoal() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          dataCache.soal = res.soal || [];
+          renderSoalTable(dataCache.soal);
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal memuat soal: ' + (err.message || err), 'error');
+        })
+        .adminGetSoalList();
+    }
+
+    function renderSoalTable(list) {
+      var tbody = document.getElementById('soalTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--muted);">Belum ada soal.</td></tr>';
+        return;
+      }
+      var html = '';
+      list.forEach(function(s) {
+        var pertanyaanShort = s.pertanyaan.length > 80 ? s.pertanyaan.substring(0, 80) + '...' : s.pertanyaan;
+        html += '<tr>';
+        html += '<td><code style="font-size:0.78rem;">' + escapeHtml(s.id) + '</code></td>';
+        html += '<td>' + escapeHtml(s.mataPelajaran) + '</td>';
+        html += '<td>' + escapeHtml(pertanyaanShort) + '</td>';
+        if (s.punyaGambar) {
+          html += '<td><span class="badge badge-active" title="' + escapeAttr(s.gambarUrl) + '">&#128247; Ya</span></td>';
+        } else {
+          html += '<td><span style="color: var(--muted); font-size: 0.82rem;">-</span></td>';
+        }
+        html += '<td><strong>' + escapeHtml(s.jawabanBenar) + '</strong></td>';
+        html += '<td>' + s.poin + '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+      // Render notasi matematika (KaTeX) di tabel soal
+      renderMathInElementSafe_(tbody);
+    }
+
+    /**
+     * Wrapper aman untuk renderMathInElement (KaTeX auto-render).
+     * Jika KaTeX belum dimuat, retry hingga 5x dengan jeda 200ms.
+     */
+    function renderMathInElementSafe_(element) {
+      if (!element) return;
+      if (typeof window.renderMathInElement !== 'function') {
+        if (!element.__mathRetry) element.__mathRetry = 0;
+        if (element.__mathRetry < 5) {
+          element.__mathRetry++;
+          setTimeout(function() { renderMathInElementSafe_(element); }, 200);
+        }
+        return;
+      }
+      element.__mathRetry = 0;
+      try {
+        window.renderMathInElement(element, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '\\[', right: '\\]', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false }
+          ],
+          throwOnError: false,
+          ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        });
+      } catch (e) { /* silent: math tampil sebagai teks literal */ }
+    }
+
+    /** Live preview notasi matematika di form tambah soal saat admin mengetik */
+    function renderPreviewMath() {
+      var text = document.getElementById('sPertanyaan').value;
+      var target = document.getElementById('pertanyaanPreviewContent');
+      // escape dulu (XSS protection), lalu KaTeX akan render $...$
+      target.innerHTML = escapeHtml(text).replace(/\n/g, '<br>') || '<em style="color:var(--muted)">(ketik untuk lihat preview)</em>';
+      renderMathInElementSafe_(target);
+    }
+
+    function filterSoal() {
+      var q = document.getElementById('searchSoal').value.toLowerCase();
+      var filtered = dataCache.soal.filter(function(s) {
+        return (s.pertanyaan + ' ' + s.mataPelajaran).toLowerCase().indexOf(q) >= 0;
+      });
+      renderSoalTable(filtered);
+    }
+
+    function showAddSoalForm() {
+      document.getElementById('addSoalForm').style.display = 'block';
+      document.getElementById('sPertanyaan').focus();
+    }
+    function hideAddSoalForm() {
+      document.getElementById('addSoalForm').style.display = 'none';
+    }
+
+    function addSoal() {
+      var soal = {
+        mataPelajaran: document.getElementById('sMapel').value.trim(),
+        pertanyaan: document.getElementById('sPertanyaan').value.trim(),
+        opsiA: document.getElementById('sOpsiA').value.trim(),
+        opsiB: document.getElementById('sOpsiB').value.trim(),
+        opsiC: document.getElementById('sOpsiC').value.trim(),
+        opsiD: document.getElementById('sOpsiD').value.trim(),
+        opsiE: document.getElementById('sOpsiE').value.trim(),
+        jawabanBenar: document.getElementById('sKunci').value,
+        poin: document.getElementById('sPoin').value || 1,
+        gambarUrl: document.getElementById('sGambarUrl').value.trim()
+      };
+      if (!soal.pertanyaan || !soal.opsiA || !soal.opsiB || !soal.opsiC || !soal.opsiD) {
+        showToast('Pertanyaan dan minimal 4 opsi wajib diisi.', 'error');
+        return;
+      }
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          showToast('Soal berhasil ditambahkan. ID: ' + res.id, 'success');
+          hideAddSoalForm();
+          ['sMapel','sPertanyaan','sOpsiA','sOpsiB','sOpsiC','sOpsiD','sOpsiE','sGambarUrl'].forEach(function(id) {
+            document.getElementById(id).value = '';
+          });
+          document.getElementById('sPoin').value = '1';
+          document.getElementById('gambarPreviewWrap').style.display = 'none';
+          loadSoal();
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal: ' + (err.message || err), 'error');
+        })
+        .adminAddSoal(soal);
+    }
+
+    /** Preview gambar saat admin mengetik URL di form soal */
+    function previewGambarSoal() {
+      var url = document.getElementById('sGambarUrl').value.trim();
+      var wrap = document.getElementById('gambarPreviewWrap');
+      var img = document.getElementById('gambarPreview');
+      if (!url) {
+        wrap.style.display = 'none';
+        return;
+      }
+      // Normalisasi URL client-side (mirror dari normalizeImageUrl_ server-side)
+      var normalized = normalizeImageUrlClient(url);
+      img.onerror = function() {
+        wrap.style.display = 'block';
+        img.style.display = 'none';
+        img.nextElementSibling.textContent = 'Gagal memuat preview. Periksa URL atau permission gambar.';
+        img.nextElementSibling.style.color = 'var(--danger)';
+      };
+      img.onload = function() {
+        wrap.style.display = 'block';
+        img.style.display = 'inline-block';
+        img.nextElementSibling.textContent = 'Preview gambar akan muncul di sini';
+        img.nextElementSibling.style.color = 'var(--muted)';
+      };
+      img.src = normalized;
+    }
+
+    /** Client-side mirror dari normalizeImageUrl_ server-side */
+    function normalizeImageUrlClient(url) {
+      if (!url) return '';
+      url = String(url).trim();
+      var fileId = null;
+      var m1 = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (m1) fileId = m1[1];
+      if (!fileId) {
+        var m2 = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+        if (m2) fileId = m2[1];
+      }
+      if (!fileId) {
+        var m3 = url.match(/drive\.google\.com\/uc\?[^#]*[?&]id=([a-zA-Z0-9_-]+)/);
+        if (m3) fileId = m3[1];
+      }
+      if (!fileId) {
+        var m4 = url.match(/docs\.google\.com\/drawings\/d\/([a-zA-Z0-9_-]+)/);
+        if (m4) fileId = m4[1];
+      }
+      if (fileId) {
+        return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w400';
+      }
+      return url;
+    }
+
+    // ====== HASIL ======
+    function loadHasil() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          dataCache.peserta = res.peserta || [];
+          renderHasilTable(dataCache.peserta);
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal memuat hasil: ' + (err.message || err), 'error');
+        })
+        .adminGetPesertaList();
+    }
+
+    function renderHasilTable(list) {
+      var tbody = document.getElementById('hasilTableBody');
+      var selesai = list.filter(function(p) { return p.status === 'completed'; });
+      if (selesai.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 2rem; color: var(--muted);">Belum ada peserta yang menyelesaikan ujian.</td></tr>';
+        return;
+      }
+      var html = '';
+      selesai.forEach(function(p) {
+        html += '<tr>';
+        html += '<td>' + escapeHtml(p.username) + '</td>';
+        html += '<td>' + escapeHtml(p.nama) + '</td>';
+        html += '<td>' + escapeHtml(p.kelas) + '</td>';
+        html += '<td>' + escapeHtml(p.mataPelajaran) + '</td>';
+        html += '<td>' + p.benar + '</td>';
+        html += '<td>' + p.salah + '</td>';
+        html += '<td>' + p.kosong + '</td>';
+        html += '<td><strong style="color: var(--primary);">' + p.skor + '</strong></td>';
+        html += '<td>' + p.total + '</td>';
+        html += '<td>' + (p.pelanggaran > 0 ? '<span style="color: var(--danger); font-weight:600;">' + p.pelanggaran + '</span>' : '0') + '</td>';
+        html += '<td style="font-size: 0.78rem;">' + escapeHtml(p.waktuSelesai) + '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ====== LOG ======
+    function loadLog() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          renderLogTable(res.log || []);
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal memuat log: ' + (err.message || err), 'error');
+        })
+        .adminGetLog();
+    }
+
+    function renderLogTable(list) {
+      var tbody = document.getElementById('logTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--muted);">Belum ada pelanggaran tercatat.</td></tr>';
+        return;
+      }
+      var html = '';
+      list.forEach(function(l) {
+        html += '<tr>';
+        html += '<td style="font-size: 0.78rem;">' + escapeHtml(l.waktu) + '</td>';
+        html += '<td>' + escapeHtml(l.username) + '</td>';
+        html += '<td><code>' + escapeHtml(l.token) + '</code></td>';
+        html += '<td><span class="badge badge-active">' + escapeHtml(l.jenis) + '</span></td>';
+        html += '<td style="font-size: 0.85rem; color: var(--muted);">' + escapeHtml(l.detail) + '</td>';
+        html += '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ====== PENGATURAN ======
+    function loadPengaturan() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          if (res.durasi) document.getElementById('setDurasi').value = res.durasi;
+          if (res.maxPelanggaran) document.getElementById('setMaxPelanggaran').value = res.maxPelanggaran;
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal memuat pengaturan: ' + (err.message || err), 'error');
+        })
+        .adminGetPengaturan();
+    }
+
+    function savePengaturan() {
+      var data = {
+        durasi: parseInt(document.getElementById('setDurasi').value || 60, 10),
+        maxPelanggaran: parseInt(document.getElementById('setMaxPelanggaran').value || 3, 10),
+        adminKey: document.getElementById('setAdminKey').value.trim() || null
+      };
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.error) { showToast(res.error, 'error'); return; }
+          showToast('Pengaturan berhasil disimpan.', 'success');
+          document.getElementById('setAdminKey').value = '';
+          if (data.adminKey) {
+            showToast('Password admin diubah. Anda akan dialihkan ke login.', 'success');
+            setTimeout(function() { window.top.location.href = '?page=admin'; }, 2000);
+          }
+        })
+        .withFailureHandler(function(err) {
+          showToast('Gagal: ' + (err.message || err), 'error');
+        })
+        .adminUpdatePengaturan(data);
+    }
+
+    // ====== UTIL ======
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /** Escape khusus untuk atribut HTML (title, src, dll) */
+    function escapeAttr(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // Init: load dashboard data
+    document.addEventListener('DOMContentLoaded', function() {
+      // Auto-load peserta untuk dashboard stats (sudah dari template)
+    });
+  </script>
+
+  <? } ?>
+</body>
+</html>
